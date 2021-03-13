@@ -20,4 +20,8 @@ set -euo pipefail
 # By default, this script does nothing.  You'll have to modify it as
 # appropriate for your application.
 cd /opt/app
-exit 0
+echo PATH $PATH
+make clean
+make server
+pwd
+ls -al

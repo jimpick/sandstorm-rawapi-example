@@ -338,6 +338,7 @@ private:
 class UiViewImpl final: public sandstorm::UiView::Server {
 public:
   kj::Promise<void> getViewInfo(GetViewInfoContext context) override {
+    KJ_LOG(WARNING, "Jim1d");
     auto viewInfo = context.initResults();
 
     // Define a "write" permission, and then define roles "editor" and "viewer" where only "editor"
@@ -361,6 +362,7 @@ public:
   }
 
   kj::Promise<void> newSession(NewSessionContext context) override {
+    KJ_LOG(WARNING, "Jim1c");
     auto params = context.getParams();
 
     KJ_REQUIRE(params.getSessionType() == capnp::typeId<sandstorm::WebSession>(),
@@ -382,6 +384,7 @@ public:
   ServerMain(kj::ProcessContext& context): context(context), ioContext(kj::setupAsyncIo()) {}
 
   kj::MainFunc getMain() {
+    KJ_LOG(WARNING, "Jim1b");
     return kj::MainBuilder(context, "Sandstorm Thin Server",
                            "Intended to be run as the root process of a Sandstorm app.")
         .callAfterParsing(KJ_BIND_METHOD(*this, run))
@@ -390,6 +393,7 @@ public:
 
   kj::MainBuilder::Validity run() {
     // Set up RPC on file descriptor 3.
+    KJ_LOG(WARNING, "Jim1a");
     auto stream = ioContext.lowLevelProvider->wrapSocketFd(3);
     capnp::TwoPartyVatNetwork network(*stream, capnp::rpc::twoparty::Side::CLIENT);
     auto rpcSystem = capnp::makeRpcServer(network, kj::heap<UiViewImpl>());

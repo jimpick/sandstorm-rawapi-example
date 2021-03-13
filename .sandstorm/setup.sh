@@ -22,4 +22,15 @@ set -euo pipefail
 
 # By default, this script does nothing.  You'll have to modify it as
 # appropriate for your application.
-exit 0
+
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+apt-get install -y pkg-config
+
+curl -O https://capnproto.org/capnproto-c++-0.8.0.tar.gz
+tar zxf capnproto-c++-0.8.0.tar.gz
+cd capnproto-c++-0.8.0
+./configure
+make -j6 check
+make install
+
