@@ -173,6 +173,7 @@ public:
 
     auto path = context.getParams().getPath();
     requireCanonicalPath(path);
+    KJ_LOG(WARNING, "Jim1e GET ", path);
 
     if (path == "var" || path == "var/") {
       // Return a listing of the directory contents, one per line.
@@ -199,10 +200,10 @@ public:
       return kj::READY_NOW;
     } else if (path == "" || path.endsWith("/")) {
       // A directory. Serve "index.html".
-      return readFile(kj::str("client/", path, "index.html"), context, "text/html; charset=UTF-8");
+      return readFile(kj::str("/opt/app/client/", path, "index.html"), context, "text/html; charset=UTF-8");
     } else {
       // Request for a static file. Look for it under "client/".
-      auto filename = kj::str("client/", path);
+      auto filename = kj::str("/opt/app/client/", path);
 
       // Check if it's a directory.
       if (isDirectory(filename)) {
@@ -315,8 +316,10 @@ private:
 
   kj::Promise<void> readFile(
       kj::StringPtr filename, GetContext context, kj::StringPtr contentType) {
+    KJ_LOG(WARNING, "Jim1f readFile ", filename);
     KJ_IF_MAYBE(fd, tryOpen(filename, O_RDONLY)) {
       auto size = getFileSize(*fd, filename);
+      KJ_LOG(WARNING, "Jim1h readFile size", size);
       kj::FdInputStream stream(kj::mv(*fd));
       auto response = context.getResults(capnp::MessageSize { size / sizeof(capnp::word) + 32, 0 });
       auto content = response.initContent();
@@ -326,6 +329,7 @@ private:
       return kj::READY_NOW;
     } else {
       auto error = context.getResults().initClientError();
+      KJ_LOG(WARNING, "Jim1g readFile error", error);
       error.setStatusCode(sandstorm::WebSession::Response::ClientErrorCode::NOT_FOUND);
       return kj::READY_NOW;
     }
@@ -338,7 +342,7 @@ private:
 class UiViewImpl final: public sandstorm::UiView::Server {
 public:
   kj::Promise<void> getViewInfo(GetViewInfoContext context) override {
-    KJ_LOG(WARNING, "Jim1d");
+    KJ_LOG(WARNING, "Jim1c");
     auto viewInfo = context.initResults();
 
     // Define a "write" permission, and then define roles "editor" and "viewer" where only "editor"
@@ -362,7 +366,7 @@ public:
   }
 
   kj::Promise<void> newSession(NewSessionContext context) override {
-    KJ_LOG(WARNING, "Jim1c");
+    KJ_LOG(WARNING, "Jim1d");
     auto params = context.getParams();
 
     KJ_REQUIRE(params.getSessionType() == capnp::typeId<sandstorm::WebSession>(),
@@ -384,7 +388,7 @@ public:
   ServerMain(kj::ProcessContext& context): context(context), ioContext(kj::setupAsyncIo()) {}
 
   kj::MainFunc getMain() {
-    KJ_LOG(WARNING, "Jim1b");
+    KJ_LOG(WARNING, "Jim1a");
     return kj::MainBuilder(context, "Sandstorm Thin Server",
                            "Intended to be run as the root process of a Sandstorm app.")
         .callAfterParsing(KJ_BIND_METHOD(*this, run))
@@ -393,7 +397,7 @@ public:
 
   kj::MainBuilder::Validity run() {
     // Set up RPC on file descriptor 3.
-    KJ_LOG(WARNING, "Jim1a");
+    KJ_LOG(WARNING, "Jim1b");
     auto stream = ioContext.lowLevelProvider->wrapSocketFd(3);
     capnp::TwoPartyVatNetwork network(*stream, capnp::rpc::twoparty::Side::CLIENT);
     auto rpcSystem = capnp::makeRpcServer(network, kj::heap<UiViewImpl>());
